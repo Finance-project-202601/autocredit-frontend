@@ -1,0 +1,1 @@
+import{requireSession}from"@/src/shared/application/session";import{AppShell}from"@/src/shared/presentation/AppShell";export default async function Layout({children}:{children:React.ReactNode}){const session=await requireSession();return <AppShell session={session}>{children}</AppShell>}
