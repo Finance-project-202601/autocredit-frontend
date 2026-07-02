@@ -1,3 +1,267 @@
-"use client";import{useMemo,useState}from"react";import{useRouter}from"next/navigation";import type{Product,Vehicle}from"@/src/shared/domain/types";import{money}from"@/src/shared/presentation/format";
-export function SimulatorForm({vehicles,products,selected}:{vehicles:Vehicle[];products:Product[];selected?:string}){const router=useRouter(),[error,setError]=useState(''),[pending,setPending]=useState(false);const[vehicleId,setVehicleId]=useState(selected??vehicles[0]?.id??'');const[productId,setProductId]=useState(products[0]?.id??'');const[rateType,setRateType]=useState('EFFECTIVE');const[graceType,setGraceType]=useState('NONE');const vehicle=useMemo(()=>vehicles.find(x=>x.id===vehicleId),[vehicles,vehicleId]);const product=products.find(x=>x.id===productId);async function submit(e:React.FormEvent<HTMLFormElement>){e.preventDefault();if(!vehicle||!product)return;setPending(true);setError('');const f=new FormData(e.currentTarget);const pct=(n:string)=>Number(f.get(n))/100;const annualDiscount=pct('discountRate');const body={vehicleId,productId,vehiclePrice:vehicle.price,downPaymentPercentage:pct('downPayment'),financedExpenses:Number(f.get('financedExpenses')),rateType,enteredRate:pct('rate'),ratePeriodDays:360,capitalizationDays:rateType==='NOMINAL'?30:null,termMonths:Number(f.get('term')),graceType,graceMonths:graceType==='NONE'?0:Number(f.get('graceMonths')),balloonPercentage:pct('balloon'),lifeInsuranceRate:product.lifeInsuranceRate,vehicleInsuranceRate:product.vehicleInsuranceRate,postage:product.postage,initialCommission:Number(f.get('commission')),discountRate:Math.pow(1+annualDiscount,1/12)-1};const r=await fetch('/api/backend/simulations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const data=await r.json().catch(()=>({}));if(r.ok)router.push(`/simulations/${data.id}`);else setError(data.message??'No se pudo calcular la simulación');setPending(false)}return <form onSubmit={submit} className="mt-6 grid gap-5 lg:grid-cols-[1fr_330px]"><div className="grid gap-5"><Section title="1. Vehículo y producto"><Select label="Vehículo" value={vehicleId} onChange={setVehicleId} options={vehicles.map(v=>[v.id,`${v.brand} ${v.model} — ${money.format(v.price)}`])}/><Select label="Producto" value={productId} onChange={setProductId} options={products.map(p=>[p.id,p.name])}/></Section><Section title="2. Condiciones financieras"><div className="grid gap-4 md:grid-cols-2"><Field name="downPayment" label="Cuota inicial (%)" value="20" min="0" max="99"/><Field name="term" label="Plazo (meses)" value="48" min={String(product?.minTerm??12)} max={String(product?.maxTerm??84)}/><Select label="Tipo de tasa" value={rateType} onChange={setRateType} options={[["EFFECTIVE","TEA efectiva"],["NOMINAL","TNA nominal capitalizable mensual"]]}/><Field name="rate" label={rateType==='EFFECTIVE'?'TEA (%)':'TNA (%)'} value="14.8"/><Field name="balloon" label="Cuota balón (%)" value="40" min={String((product?.minBalloonPct??.2)*100)} max={String((product?.maxBalloonPct??.5)*100)}/><Field name="discountRate" label="Tasa de descuento efectiva anual (%)" value="14.8"/></div></Section><Section title="3. Gracia y otros costos"><div className="grid gap-4 md:grid-cols-2"><Select label="Periodo de gracia" value={graceType} onChange={setGraceType} options={[["NONE","Sin gracia"],["PARTIAL","Gracia parcial"],["TOTAL","Gracia total"]]}/>{graceType!=='NONE'&&<Field name="graceMonths" label="Meses de gracia" value="3" min="1" max={String(product?.maxGraceMonths??12)}/>}<Field name="financedExpenses" label="Gastos financiados (S/)" value="0"/><Field name="commission" label="Comisión inicial (S/)" value="0"/></div></Section>{error&&<div className="error">{error}</div>}</div><aside className="card h-fit p-5 lg:sticky lg:top-6"><h2 className="font-bold">Resumen de entrada</h2><div className="mt-5 grid gap-3 text-sm"><Row label="Vehículo" value={vehicle?`${vehicle.brand} ${vehicle.model}`:'—'}/><Row label="Precio" value={vehicle?money.format(vehicle.price):'—'}/><Row label="Moneda" value="Soles (PEN)"/><Row label="Seguro vehicular" value={`${((product?.vehicleInsuranceRate??0)*100).toFixed(3)}% mensual`}/><Row label="Desgravamen" value={`${((product?.lifeInsuranceRate??0)*100).toFixed(3)}% mensual`}/></div><button disabled={pending} className="btn btn-primary mt-6 w-full">{pending?'Calculando…':'Calcular simulación'}</button><p className="help mt-3">El resultado incluirá balón, seguros, portes, VAN, TIR y TCEA.</p></aside></form>}
-function Section({title,children}:{title:string;children:React.ReactNode}){return <section className="card p-5"><h2 className="mb-5 font-bold">{title}</h2>{children}</section>}function Field({name,label,value,min='0',max}:{name:string;label:string;value:string;min?:string;max?:string}){return <div className="field"><label>{label}</label><input name={name} type="number" step="0.0001" defaultValue={value} min={min} max={max} required/></div>}function Select({label,value,onChange,options}:{label:string;value:string;onChange:(x:string)=>void;options:(readonly[string,string])[]}){return <div className="field"><label>{label}</label><select value={value} onChange={e=>onChange(e.target.value)}>{options.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></div>}function Row({label,value}:{label:string;value:string}){return <div className="flex justify-between gap-3 border-b pb-2"><span className="text-slate-500">{label}</span><b className="text-right">{value}</b></div>}
+"use client";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import type { Product, Vehicle } from "@/src/shared/domain/types";
+import { money } from "@/src/shared/presentation/format";
+export function SimulatorForm({
+  vehicles,
+  products,
+  selected,
+}: {
+  vehicles: Vehicle[];
+  products: Product[];
+  selected?: string;
+}) {
+  const router = useRouter(),
+    [error, setError] = useState(""),
+    [pending, setPending] = useState(false);
+  const [vehicleId, setVehicleId] = useState(selected ?? vehicles[0]?.id ?? "");
+  const [productId, setProductId] = useState(products[0]?.id ?? "");
+  const [rateType, setRateType] = useState("EFFECTIVE");
+  const [graceType, setGraceType] = useState("NONE");
+  const vehicle = useMemo(
+    () => vehicles.find((x) => x.id === vehicleId),
+    [vehicles, vehicleId],
+  );
+  const product = products.find((x) => x.id === productId);
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!vehicle || !product) return;
+    setPending(true);
+    setError("");
+    const f = new FormData(e.currentTarget);
+    const pct = (n: string) => Number(f.get(n)) / 100;
+    const annualDiscount = pct("discountRate");
+    const body = {
+      vehicleId,
+      productId,
+      vehiclePrice: vehicle.price,
+      downPaymentPercentage: pct("downPayment"),
+      financedExpenses: Number(f.get("financedExpenses")),
+      rateType,
+      enteredRate: pct("rate"),
+      ratePeriodDays: 360,
+      capitalizationDays: rateType === "NOMINAL" ? 30 : null,
+      termMonths: Number(f.get("term")),
+      graceType,
+      graceMonths: graceType === "NONE" ? 0 : Number(f.get("graceMonths")),
+      balloonPercentage: pct("balloon"),
+      lifeInsuranceRate: product.lifeInsuranceRate,
+      vehicleInsuranceRate: product.vehicleInsuranceRate,
+      postage: product.postage,
+      initialCommission: Number(f.get("commission")),
+      discountRate: Math.pow(1 + annualDiscount, 1 / 12) - 1,
+    };
+    const r = await fetch("/api/backend/simulations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (r.ok) router.push(`/simulations/${data.id}`);
+    else setError(data.message ?? "No se pudo calcular la simulación");
+    setPending(false);
+  }
+  return (
+    <form
+      onSubmit={submit}
+      className="mt-6 grid gap-5 lg:grid-cols-[1fr_330px]"
+    >
+      <div className="grid gap-5">
+        <Section title="1. Vehículo y producto">
+          <Select
+            label="Vehículo"
+            value={vehicleId}
+            onChange={setVehicleId}
+            options={vehicles.map((v) => [
+              v.id,
+              `${v.brand} ${v.model} — ${money.format(v.price)}`,
+            ])}
+          />
+          <Select
+            label="Producto"
+            value={productId}
+            onChange={setProductId}
+            options={products.map((p) => [p.id, p.name])}
+          />
+        </Section>
+        <Section title="2. Condiciones financieras">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field
+              name="downPayment"
+              label="Cuota inicial (%)"
+              value="20"
+              min="0"
+              max="99"
+            />
+            <Field
+              name="term"
+              label="Plazo (meses)"
+              value="48"
+              min={String(product?.minTerm ?? 12)}
+              max={String(product?.maxTerm ?? 84)}
+            />
+            <Select
+              label="Tipo de tasa"
+              value={rateType}
+              onChange={setRateType}
+              options={[
+                ["EFFECTIVE", "TEA efectiva"],
+                ["NOMINAL", "TNA nominal capitalizable mensual"],
+              ]}
+            />
+            <Field
+              name="rate"
+              label={rateType === "EFFECTIVE" ? "TEA (%)" : "TNA (%)"}
+              value="14.8"
+            />
+            <Field
+              name="balloon"
+              label="Cuota balón (%)"
+              value="40"
+              min={String((product?.minBalloonPct ?? 0.2) * 100)}
+              max={String((product?.maxBalloonPct ?? 0.5) * 100)}
+            />
+            <Field
+              name="discountRate"
+              label="Tasa de descuento efectiva anual (%)"
+              value="14.8"
+            />
+          </div>
+        </Section>
+        <Section title="3. Gracia y otros costos">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Select
+              label="Periodo de gracia"
+              value={graceType}
+              onChange={setGraceType}
+              options={[
+                ["NONE", "Sin gracia"],
+                ["PARTIAL", "Gracia parcial"],
+                ["TOTAL", "Gracia total"],
+              ]}
+            />
+            {graceType !== "NONE" && (
+              <Field
+                name="graceMonths"
+                label="Meses de gracia"
+                value="3"
+                min="1"
+                max={String(product?.maxGraceMonths ?? 12)}
+              />
+            )}
+            <Field
+              name="financedExpenses"
+              label="Gastos financiados (S/)"
+              value="0"
+            />
+            <Field name="commission" label="Comisión inicial (S/)" value="0" />
+          </div>
+        </Section>
+        {error && <div className="error">{error}</div>}
+      </div>
+      <aside className="card h-fit p-5 lg:sticky lg:top-6">
+        <h2 className="font-bold">Resumen de entrada</h2>
+        <div className="mt-5 grid gap-3 text-sm">
+          <Row
+            label="Vehículo"
+            value={vehicle ? `${vehicle.brand} ${vehicle.model}` : "—"}
+          />
+          <Row
+            label="Precio"
+            value={vehicle ? money.format(vehicle.price) : "—"}
+          />
+          <Row label="Moneda" value="Soles (PEN)" />
+          <Row
+            label="Seguro vehicular"
+            value={`${((product?.vehicleInsuranceRate ?? 0) * 100).toFixed(3)}% mensual`}
+          />
+          <Row
+            label="Desgravamen"
+            value={`${((product?.lifeInsuranceRate ?? 0) * 100).toFixed(3)}% mensual`}
+          />
+        </div>
+        <button disabled={pending} className="btn btn-primary mt-6 w-full">
+          {pending ? "Calculando…" : "Calcular simulación"}
+        </button>
+        <p className="help mt-3">
+          El resultado incluirá balón, seguros, portes, VAN, TIR y TCEA.
+        </p>
+      </aside>
+    </form>
+  );
+}
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="card p-5">
+      <h2 className="mb-5 font-bold">{title}</h2>
+      {children}
+    </section>
+  );
+}
+function Field({
+  name,
+  label,
+  value,
+  min = "0",
+  max,
+}: {
+  name: string;
+  label: string;
+  value: string;
+  min?: string;
+  max?: string;
+}) {
+  return (
+    <div className="field">
+      <label>{label}</label>
+      <input
+        name={name}
+        type="number"
+        step="0.0001"
+        defaultValue={value}
+        min={min}
+        max={max}
+        required
+      />
+    </div>
+  );
+}
+function Select({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (x: string) => void;
+  options: (readonly [string, string])[];
+}) {
+  return (
+    <div className="field">
+      <label>{label}</label>
+      <select value={value} onChange={(e) => onChange(e.target.value)}>
+        {options.map(([v, l]) => (
+          <option key={v} value={v}>
+            {l}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between gap-3 border-b pb-2">
+      <span className="text-slate-500">{label}</span>
+      <b className="text-right">{value}</b>
+    </div>
+  );
+}

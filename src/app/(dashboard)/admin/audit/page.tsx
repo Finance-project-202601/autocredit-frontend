@@ -1,1 +1,46 @@
-import{requireSession}from"@/src/shared/application/session";import{backendFetch}from"@/src/shared/infrastructure/backend";import{date}from"@/src/shared/presentation/format";type Audit={id:string;actorId?:string;action:string;aggregateType:string;aggregateId?:string;details?:string;occurredAt:string};export default async function Audit(){await requireSession('ADMIN');const rows=await backendFetch<Audit[]>('/api/admin/audit');return <><div className="page-title"><h1>Auditoría</h1><p>Trazabilidad de operaciones relevantes.</p></div><div className="card table-wrap mt-6"><table className="data-table"><thead><tr><th>Fecha</th><th>Acción</th><th>Entidad</th><th>Detalle</th></tr></thead><tbody>{rows.map(x=><tr key={x.id}><td>{date(x.occurredAt)}</td><td>{x.action}</td><td>{x.aggregateType}</td><td>{x.details??'—'}</td></tr>)}</tbody></table></div></>}
+import { requireSession } from "@/src/shared/application/session";
+import { backendFetch } from "@/src/shared/infrastructure/backend";
+import { date } from "@/src/shared/presentation/format";
+type Audit = {
+  id: string;
+  actorId?: string;
+  action: string;
+  aggregateType: string;
+  aggregateId?: string;
+  details?: string;
+  occurredAt: string;
+};
+export default async function Audit() {
+  await requireSession("ADMIN");
+  const rows = await backendFetch<Audit[]>("/api/admin/audit");
+  return (
+    <>
+      <div className="page-title">
+        <h1>Auditoría</h1>
+        <p>Trazabilidad de operaciones relevantes.</p>
+      </div>
+      <div className="card table-wrap mt-6">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Acción</th>
+              <th>Entidad</th>
+              <th>Detalle</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((x) => (
+              <tr key={x.id}>
+                <td>{date(x.occurredAt)}</td>
+                <td>{x.action}</td>
+                <td>{x.aggregateType}</td>
+                <td>{x.details ?? "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}

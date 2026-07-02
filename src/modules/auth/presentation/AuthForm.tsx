@@ -1,2 +1,109 @@
-"use client";import{useState}from"react";import{useRouter}from"next/navigation";import Link from"next/link";import{CarFront,LoaderCircle}from"lucide-react";
-export function AuthForm({mode}:{mode:"login"|"register"}){const router=useRouter();const[error,setError]=useState("");const[pending,setPending]=useState(false);async function submit(e:React.FormEvent<HTMLFormElement>){e.preventDefault();setPending(true);setError("");const form=new FormData(e.currentTarget);const body={email:String(form.get("email")),password:String(form.get("password"))};try{const r=await fetch(`/api/auth/${mode}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});const data=await r.json();if(!r.ok)throw new Error(data.message??"No se pudo continuar");if(mode==="register"){const login=await fetch("/api/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});if(!login.ok)throw new Error("Cuenta creada. Inicia sesión para continuar.")}router.replace("/dashboard");router.refresh()}catch(x){setError(x instanceof Error?x.message:"Ocurrió un error")}finally{setPending(false)}}return <div className="grid min-h-screen place-items-center px-5"><div className="card w-full max-w-md p-8"><div className="mb-7 text-center"><span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-blue-700 text-white"><CarFront/></span><h1 className="mt-4 text-2xl font-bold">{mode==="login"?"Bienvenido a AutoCredit":"Crea tu cuenta"}</h1><p className="mt-2 text-sm text-slate-500">{mode==="login"?"Ingresa para gestionar tus simulaciones":"Empieza a simular tu Compra Inteligente"}</p></div><form className="grid gap-4" onSubmit={submit}>{error&&<div className="error">{error}</div>}<div className="field"><label htmlFor="auth-email">Correo electrónico</label><input id="auth-email" name="email" type="email" required autoComplete="email"/></div><div className="field"><label htmlFor="auth-password">Contraseña</label><input id="auth-password" name="password" type="password" minLength={8} required autoComplete={mode==="login"?"current-password":"new-password"}/><span className="help">Mínimo 8 caracteres.</span></div><button type="submit" disabled={pending} className="btn btn-primary mt-2">{pending?<LoaderCircle className="animate-spin" size={18}/>:null}{mode==="login"?"Iniciar sesión":"Crear cuenta"}</button></form><p className="mt-6 text-center text-sm text-slate-600">{mode==="login"?"¿Aún no tienes cuenta? ":"¿Ya tienes cuenta? "}<Link className="font-semibold text-blue-700" href={mode==="login"?"/register":"/login"}>{mode==="login"?"Regístrate":"Ingresa"}</Link></p></div></div>}
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { CarFront, LoaderCircle } from "lucide-react";
+export function AuthForm({ mode }: { mode: "login" | "register" }) {
+  const router = useRouter();
+  const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setPending(true);
+    setError("");
+    const form = new FormData(e.currentTarget);
+    const body = {
+      email: String(form.get("email")),
+      password: String(form.get("password")),
+    };
+    try {
+      const r = await fetch(`/api/auth/${mode}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.message ?? "No se pudo continuar");
+      if (mode === "register") {
+        const login = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!login.ok)
+          throw new Error("Cuenta creada. Inicia sesión para continuar.");
+      }
+      router.replace("/dashboard");
+      router.refresh();
+    } catch (x) {
+      setError(x instanceof Error ? x.message : "Ocurrió un error");
+    } finally {
+      setPending(false);
+    }
+  }
+  return (
+    <div className="grid min-h-screen place-items-center px-5">
+      <div className="card w-full max-w-md p-8">
+        <div className="mb-7 text-center">
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-blue-700 text-white">
+            <CarFront />
+          </span>
+          <h1 className="mt-4 text-2xl font-bold">
+            {mode === "login" ? "Bienvenido a AutoCredit" : "Crea tu cuenta"}
+          </h1>
+          <p className="mt-2 text-sm text-slate-500">
+            {mode === "login"
+              ? "Ingresa para gestionar tus simulaciones"
+              : "Empieza a simular tu Compra Inteligente"}
+          </p>
+        </div>
+        <form className="grid gap-4" onSubmit={submit}>
+          {error && <div className="error">{error}</div>}
+          <div className="field">
+            <label htmlFor="auth-email">Correo electrónico</label>
+            <input
+              id="auth-email"
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="auth-password">Contraseña</label>
+            <input
+              id="auth-password"
+              name="password"
+              type="password"
+              minLength={8}
+              required
+              autoComplete={
+                mode === "login" ? "current-password" : "new-password"
+              }
+            />
+            <span className="help">Mínimo 8 caracteres.</span>
+          </div>
+          <button
+            type="submit"
+            disabled={pending}
+            className="btn btn-primary mt-2"
+          >
+            {pending ? (
+              <LoaderCircle className="animate-spin" size={18} />
+            ) : null}
+            {mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
+          </button>
+        </form>
+        <p className="mt-6 text-center text-sm text-slate-600">
+          {mode === "login" ? "¿Aún no tienes cuenta? " : "¿Ya tienes cuenta? "}
+          <Link
+            className="font-semibold text-blue-700"
+            href={mode === "login" ? "/register" : "/login"}
+          >
+            {mode === "login" ? "Regístrate" : "Ingresa"}
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}

@@ -1,1 +1,17 @@
-import{backendFetch}from"@/src/shared/infrastructure/backend";import{ProfileForm}from"@/src/modules/customers/presentation/ProfileForm";export default async function Profile(){let initial;try{initial=await backendFetch<Record<string,string|number>>('/api/me')}catch{}return <><div className="page-title"><h1>Mi perfil</h1><p>Completa tus datos para crear simulaciones de crédito.</p></div><ProfileForm initial={initial}/></>}
+import { backendFetch } from "@/src/shared/infrastructure/backend";
+import { ProfileForm } from "@/src/modules/customers/presentation/ProfileForm";
+export default async function Profile() {
+  let initial;
+  try {
+    initial = await backendFetch<Record<string, string | number>>("/api/me");
+  } catch {}
+  return (
+    <>
+      <div className="page-title">
+        <h1>Mi perfil</h1>
+        <p>Completa tus datos para crear simulaciones de crédito.</p>
+      </div>
+      <ProfileForm initial={initial} />
+    </>
+  );
+}

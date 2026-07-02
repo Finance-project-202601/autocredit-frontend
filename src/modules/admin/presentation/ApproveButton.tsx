@@ -1,1 +1,34 @@
-"use client";import{useState}from"react";import{useRouter}from"next/navigation";export function ApproveButton({id,disabled}:{id:string;disabled:boolean}){const[pending,setPending]=useState(false),router=useRouter();async function approve(){if(!confirm('¿Aprobar esta simulación y congelar sus condiciones?'))return;setPending(true);const r=await fetch(`/api/backend/admin/simulations/${id}/approve`,{method:'POST'});if(!r.ok)alert((await r.json().catch(()=>({}))).message??'No se pudo aprobar');router.refresh();setPending(false)}return <button disabled={disabled||pending} onClick={approve} className="btn btn-primary !py-2 text-xs">{disabled?'Aprobada':pending?'Aprobando…':'Aprobar'}</button>}
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+export function ApproveButton({
+  id,
+  disabled,
+}: {
+  id: string;
+  disabled: boolean;
+}) {
+  const [pending, setPending] = useState(false),
+    router = useRouter();
+  async function approve() {
+    if (!confirm("¿Aprobar esta simulación y congelar sus condiciones?"))
+      return;
+    setPending(true);
+    const r = await fetch(`/api/backend/admin/simulations/${id}/approve`, {
+      method: "POST",
+    });
+    if (!r.ok)
+      alert((await r.json().catch(() => ({}))).message ?? "No se pudo aprobar");
+    router.refresh();
+    setPending(false);
+  }
+  return (
+    <button
+      disabled={disabled || pending}
+      onClick={approve}
+      className="btn btn-primary !py-2 text-xs"
+    >
+      {disabled ? "Aprobada" : pending ? "Aprobando…" : "Aprobar"}
+    </button>
+  );
+}

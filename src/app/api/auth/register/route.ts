@@ -1,2 +1,13 @@
-import{NextResponse}from"next/server";const base=process.env.BACKEND_URL??"http://localhost:8080";
-export async function POST(request:Request){const response=await fetch(`${base}/api/auth/register`,{method:"POST",headers:{"Content-Type":"application/json"},body:await request.text()});const data=await response.json().catch(()=>({message:"No se pudo crear la cuenta"}));return NextResponse.json(data,{status:response.status})}
+import { NextResponse } from "next/server";
+const base = process.env.BACKEND_URL ?? "http://localhost:8080";
+export async function POST(request: Request) {
+  const response = await fetch(`${base}/api/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: await request.text(),
+  });
+  const data = await response
+    .json()
+    .catch(() => ({ message: "No se pudo crear la cuenta" }));
+  return NextResponse.json(data, { status: response.status });
+}

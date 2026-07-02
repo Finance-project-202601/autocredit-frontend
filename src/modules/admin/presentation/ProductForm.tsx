@@ -1,1 +1,77 @@
-"use client";import{useState}from"react";import{useRouter}from"next/navigation";export function ProductForm(){const[open,setOpen]=useState(false),router=useRouter();async function submit(e:React.FormEvent<HTMLFormElement>){e.preventDefault();const f=new FormData(e.currentTarget),num=(x:string)=>Number(f.get(x));const body={name:f.get('name'),minTerm:num('minTerm'),maxTerm:num('maxTerm'),minBalloonPct:num('minBalloon')/100,maxBalloonPct:num('maxBalloon')/100,maxGraceMonths:num('grace'),lifeInsuranceRate:num('life')/100,vehicleInsuranceRate:num('vehicle')/100,postage:num('postage'),active:true};const r=await fetch('/api/backend/admin/products',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(r.ok){setOpen(false);router.refresh()}else alert((await r.json()).message)}return <><button onClick={()=>setOpen(!open)} className="btn btn-primary">Nuevo producto</button>{open&&<form onSubmit={submit} className="card mt-5 grid gap-3 p-5 md:grid-cols-3"><F n="name" l="Nombre" t="text" v="Compra Inteligente PEN"/><F n="minTerm" l="Plazo mínimo" v="12"/><F n="maxTerm" l="Plazo máximo" v="84"/><F n="minBalloon" l="Balón mínimo %" v="20"/><F n="maxBalloon" l="Balón máximo %" v="50"/><F n="grace" l="Gracia máxima" v="12"/><F n="life" l="Desgravamen mensual %" v="0.028"/><F n="vehicle" l="Seguro vehicular mensual %" v="0.3"/><F n="postage" l="Portes S/" v="10"/><div className="md:col-span-3 flex justify-end"><button className="btn btn-primary">Guardar</button></div></form>}</>}function F({n,l,v,t='number'}:{n:string;l:string;v:string;t?:string}){return <div className="field"><label>{l}</label><input required name={n} type={t} step="0.001" defaultValue={v}/></div>}
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+export function ProductForm() {
+  const [open, setOpen] = useState(false),
+    router = useRouter();
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget),
+      num = (x: string) => Number(f.get(x));
+    const body = {
+      name: f.get("name"),
+      minTerm: num("minTerm"),
+      maxTerm: num("maxTerm"),
+      minBalloonPct: num("minBalloon") / 100,
+      maxBalloonPct: num("maxBalloon") / 100,
+      maxGraceMonths: num("grace"),
+      lifeInsuranceRate: num("life") / 100,
+      vehicleInsuranceRate: num("vehicle") / 100,
+      postage: num("postage"),
+      active: true,
+    };
+    const r = await fetch("/api/backend/admin/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (r.ok) {
+      setOpen(false);
+      router.refresh();
+    } else alert((await r.json()).message);
+  }
+  return (
+    <>
+      <button onClick={() => setOpen(!open)} className="btn btn-primary">
+        Nuevo producto
+      </button>
+      {open && (
+        <form
+          onSubmit={submit}
+          className="card mt-5 grid gap-3 p-5 md:grid-cols-3"
+        >
+          <F n="name" l="Nombre" t="text" v="Compra Inteligente PEN" />
+          <F n="minTerm" l="Plazo mínimo" v="12" />
+          <F n="maxTerm" l="Plazo máximo" v="84" />
+          <F n="minBalloon" l="Balón mínimo %" v="20" />
+          <F n="maxBalloon" l="Balón máximo %" v="50" />
+          <F n="grace" l="Gracia máxima" v="12" />
+          <F n="life" l="Desgravamen mensual %" v="0.028" />
+          <F n="vehicle" l="Seguro vehicular mensual %" v="0.3" />
+          <F n="postage" l="Portes S/" v="10" />
+          <div className="md:col-span-3 flex justify-end">
+            <button className="btn btn-primary">Guardar</button>
+          </div>
+        </form>
+      )}
+    </>
+  );
+}
+function F({
+  n,
+  l,
+  v,
+  t = "number",
+}: {
+  n: string;
+  l: string;
+  v: string;
+  t?: string;
+}) {
+  return (
+    <div className="field">
+      <label>{l}</label>
+      <input required name={n} type={t} step="0.001" defaultValue={v} />
+    </div>
+  );
+}

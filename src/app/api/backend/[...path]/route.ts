@@ -1,3 +1,42 @@
-import{cookies}from"next/headers";import{NextResponse}from"next/server";const base=process.env.BACKEND_URL??"http://localhost:8080";
-async function forward(request:Request,{params}:{params:Promise<{path:string[]}>}){const token=(await cookies()).get("autocredit_session")?.value;if(!token)return NextResponse.json({message:"Sesión expirada"},{status:401});const{path}=await params;const headers=new Headers();headers.set("Authorization",`Bearer ${token}`);const type=request.headers.get("content-type");if(type)headers.set("Content-Type",type);const method=request.method;const response=await fetch(`${base}/api/${path.join("/")}`,{method,headers,body:["GET","HEAD"].includes(method)?undefined:await request.arrayBuffer(),cache:"no-store"});const responseType=response.headers.get("content-type")??"application/json";return new NextResponse(response.body,{status:response.status,headers:{"Content-Type":responseType,"Content-Disposition":response.headers.get("content-disposition")??"inline"}})}
-export{forward as GET,forward as POST,forward as PUT,forward as PATCH,forward as DELETE};
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+const base = process.env.BACKEND_URL ?? "http://localhost:8080";
+async function forward(
+  request: Request,
+  { params }: { params: Promise<{ path: string[] }> },
+) {
+  const token = (await cookies()).get("autocredit_session")?.value;
+  if (!token)
+    return NextResponse.json({ message: "Sesión expirada" }, { status: 401 });
+  const { path } = await params;
+  const headers = new Headers();
+  headers.set("Authorization", `Bearer ${token}`);
+  const type = request.headers.get("content-type");
+  if (type) headers.set("Content-Type", type);
+  const method = request.method;
+  const response = await fetch(`${base}/api/${path.join("/")}`, {
+    method,
+    headers,
+    body: ["GET", "HEAD"].includes(method)
+      ? undefined
+      : await request.arrayBuffer(),
+    cache: "no-store",
+  });
+  const responseType =
+    response.headers.get("content-type") ?? "application/json";
+  return new NextResponse(response.body, {
+    status: response.status,
+    headers: {
+      "Content-Type": responseType,
+      "Content-Disposition":
+        response.headers.get("content-disposition") ?? "inline",
+    },
+  });
+}
+export {
+  forward as GET,
+  forward as POST,
+  forward as PUT,
+  forward as PATCH,
+  forward as DELETE,
+};
