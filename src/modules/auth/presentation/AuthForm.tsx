@@ -2,7 +2,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CarFront, LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
+import { HelpTip } from "@/src/shared/presentation/HelpTip";
+
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
   const [error, setError] = useState("");
@@ -42,62 +44,111 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
     }
   }
   return (
-    <div className="grid min-h-screen place-items-center px-5">
-      <div className="card w-full max-w-md p-8">
-        <div className="mb-7 text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-blue-700 text-white">
-            <CarFront />
-          </span>
-          <h1 className="mt-4 text-2xl font-bold">
-            {mode === "login" ? "Bienvenido a AutoCredit" : "Crea tu cuenta"}
-          </h1>
-          <p className="mt-2 text-sm text-slate-500">
-            {mode === "login"
-              ? "Ingresa para gestionar tus simulaciones"
-              : "Empieza a simular tu Compra Inteligente"}
-          </p>
-        </div>
-        <form className="grid gap-4" onSubmit={submit}>
-          {error && <div className="error">{error}</div>}
-          <div className="field">
-            <label htmlFor="auth-email">Correo electrónico</label>
-            <input
-              id="auth-email"
-              name="email"
-              type="email"
-              required
-              autoComplete="email"
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="auth-password">Contraseña</label>
-            <input
-              id="auth-password"
-              name="password"
-              type="password"
-              minLength={8}
-              required
-              autoComplete={
-                mode === "login" ? "current-password" : "new-password"
-              }
-            />
-            <span className="help">Mínimo 8 caracteres.</span>
-          </div>
-          <button
-            type="submit"
-            disabled={pending}
-            className="btn btn-primary mt-2"
+    <div className="auth-wrap">
+      <div className="auth-card">
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            marginBottom: 28,
+          }}
+        >
+          <div
+            className="brand-logo"
+            style={{ width: 48, height: 48, borderRadius: 12, marginBottom: 14 }}
           >
-            {pending ? (
-              <LoaderCircle className="animate-spin" size={18} />
-            ) : null}
-            {mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
-          </button>
-        </form>
-        <p className="mt-6 text-center text-sm text-slate-600">
+            <svg
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+              fill="none"
+              stroke="white"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M5 13l1.5-4a2 2 0 0 1 2-1.5h7a2 2 0 0 1 2 1.5L19 13" />
+              <path d="M3 13h18v5a1 1 0 0 1-1 1h-2v-2H6v2H4a1 1 0 0 1-1-1z" />
+            </svg>
+          </div>
+          <div className="fw-700 navy-text" style={{ fontSize: 20 }}>
+            AutoCredit
+          </div>
+          <div className="muted" style={{ fontSize: 13, marginTop: 4 }}>
+            {mode === "login"
+              ? "Inicia sesión en tu cuenta"
+              : "Crea tu cuenta para empezar a simular"}
+          </div>
+        </div>
+
+        <div className="card card-pad" style={{ padding: 28 }}>
+          <form className="stack gap-16" onSubmit={submit}>
+            {error && <div className="alert alert-error">{error}</div>}
+            <div className="field">
+              <div className="label-row">
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <label htmlFor="auth-email">Correo electrónico</label>
+                  <HelpTip below width={230}>
+                    <span>
+                      <strong>Correo.</strong> Usa un correo válido; será tu
+                      usuario para iniciar sesión en AutoCredit.
+                    </span>
+                  </HelpTip>
+                </span>
+              </div>
+              <input
+                id="auth-email"
+                name="email"
+                type="email"
+                required
+                autoComplete="email"
+                className="input"
+              />
+            </div>
+            <div className="field">
+              <div className="label-row">
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <label htmlFor="auth-password">Contraseña</label>
+                  <HelpTip below width={230}>
+                    <span>
+                      <strong>Contraseña.</strong> Mínimo 8 caracteres. Combina
+                      letras y números para mayor seguridad.
+                    </span>
+                  </HelpTip>
+                </span>
+                <span className="hint">Mínimo 8 caracteres</span>
+              </div>
+              <input
+                id="auth-password"
+                name="password"
+                type="password"
+                minLength={8}
+                required
+                autoComplete={
+                  mode === "login" ? "current-password" : "new-password"
+                }
+                className="input"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={pending}
+              className="btn btn-primary btn-lg btn-block"
+            >
+              {pending ? <LoaderCircle className="animate-spin" size={18} /> : null}
+              {mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
+            </button>
+          </form>
+        </div>
+
+        <p
+          className="muted"
+          style={{ textAlign: "center", marginTop: 18, fontSize: 13 }}
+        >
           {mode === "login" ? "¿Aún no tienes cuenta? " : "¿Ya tienes cuenta? "}
           <Link
-            className="font-semibold text-blue-700"
+            className="fw-600 action-text"
             href={mode === "login" ? "/register" : "/login"}
           >
             {mode === "login" ? "Regístrate" : "Ingresa"}

@@ -1,13 +1,15 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Plus, X } from "lucide-react";
+
 export function ProductForm() {
-  const [open, setOpen] = useState(false),
-    router = useRouter();
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const f = new FormData(e.currentTarget),
-      num = (x: string) => Number(f.get(x));
+    const f = new FormData(e.currentTarget);
+    const num = (x: string) => Number(f.get(x));
     const body = {
       name: f.get("name"),
       minTerm: num("minTerm"),
@@ -32,31 +34,63 @@ export function ProductForm() {
   }
   return (
     <>
-      <button onClick={() => setOpen(!open)} className="btn btn-primary">
-        Nuevo producto
+      <button onClick={() => setOpen(true)} className="btn btn-primary">
+        <Plus /> Nuevo producto
       </button>
       {open && (
-        <form
-          onSubmit={submit}
-          className="card mt-5 grid gap-3 p-5 md:grid-cols-3"
-        >
-          <F n="name" l="Nombre" t="text" v="Compra Inteligente PEN" />
-          <F n="minTerm" l="Plazo mínimo" v="12" />
-          <F n="maxTerm" l="Plazo máximo" v="84" />
-          <F n="minBalloon" l="Balón mínimo %" v="20" />
-          <F n="maxBalloon" l="Balón máximo %" v="50" />
-          <F n="grace" l="Gracia máxima" v="12" />
-          <F n="life" l="Desgravamen mensual %" v="0.028" />
-          <F n="vehicle" l="Seguro vehicular mensual %" v="0.3" />
-          <F n="postage" l="Portes S/" v="10" />
-          <div className="md:col-span-3 flex justify-end">
-            <button className="btn btn-primary">Guardar</button>
-          </div>
-        </form>
+        <div className="modal-overlay" onClick={() => setOpen(false)}>
+          <form
+            className="modal"
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={submit}
+          >
+            <div className="modal-header">
+              <div className="card-title">Nuevo producto financiero</div>
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={() => setOpen(false)}
+                aria-label="Cerrar"
+              >
+                <X style={{ width: 16, height: 16 }} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-row-single" style={{ marginBottom: 18 }}>
+                <F n="name" l="Nombre" t="text" v="Compra Inteligente PEN" />
+              </div>
+              <div className="form-row form-row-3">
+                <F n="minTerm" l="Plazo mínimo (meses)" v="12" />
+                <F n="maxTerm" l="Plazo máximo (meses)" v="84" />
+                <F n="grace" l="Gracia máxima (meses)" v="12" />
+              </div>
+              <div className="form-row">
+                <F n="minBalloon" l="Balón mínimo (%)" v="20" />
+                <F n="maxBalloon" l="Balón máximo (%)" v="50" />
+              </div>
+              <div className="form-row form-row-3">
+                <F n="life" l="Desgravamen mensual (%)" v="0.028" />
+                <F n="vehicle" l="Seguro vehicular mensual (%)" v="0.3" />
+                <F n="postage" l="Portes (S/)" v="10" />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setOpen(false)}
+              >
+                Cancelar
+              </button>
+              <button className="btn btn-primary">Guardar producto</button>
+            </div>
+          </form>
+        </div>
       )}
     </>
   );
 }
+
 function F({
   n,
   l,
@@ -71,7 +105,14 @@ function F({
   return (
     <div className="field">
       <label>{l}</label>
-      <input required name={n} type={t} step="0.001" defaultValue={v} />
+      <input
+        required
+        name={n}
+        type={t}
+        step="0.001"
+        className="input"
+        defaultValue={v}
+      />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import type { Session } from "../domain/types";
 import {
   LayoutDashboard,
@@ -14,8 +15,9 @@ import {
   ScrollText,
   LogOut,
   Menu,
+  HelpCircle,
 } from "lucide-react";
-import { useState } from "react";
+
 const customer = [
   ["/dashboard", "Resumen", LayoutDashboard],
   ["/simulations/new", "Simular crédito", Calculator],
@@ -24,6 +26,7 @@ const customer = [
   ["/loans", "Mis préstamos", Landmark],
   ["/profile", "Mi perfil", UserRound],
 ] as const;
+
 const admin = [
   ["/admin", "Resumen", LayoutDashboard],
   ["/admin/simulations", "Aprobaciones", ClipboardCheck],
@@ -32,6 +35,38 @@ const admin = [
   ["/admin/users", "Usuarios", Users],
   ["/admin/audit", "Auditoría", ScrollText],
 ] as const;
+
+const TITLES: Record<string, string> = {
+  "/dashboard": "Resumen",
+  "/simulations": "Mis simulaciones",
+  "/simulations/new": "Simulador de crédito",
+  "/vehicles": "Vehículos",
+  "/loans": "Mis préstamos",
+  "/profile": "Mi perfil",
+  "/admin": "Panel administrativo",
+  "/admin/simulations": "Aprobaciones",
+  "/admin/vehicles": "Vehículos",
+  "/admin/products": "Productos",
+  "/admin/users": "Usuarios",
+  "/admin/audit": "Auditoría",
+};
+
+function CarLogo() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="white"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M5 13l1.5-4a2 2 0 0 1 2-1.5h7a2 2 0 0 1 2 1.5L19 13" />
+      <path d="M3 13h18v5a1 1 0 0 1-1 1h-2v-2H6v2H4a1 1 0 0 1-1-1z" />
+    </svg>
+  );
+}
+
 export function AppShell({
   session,
   children,
@@ -39,71 +74,122 @@ export function AppShell({
   session: Session;
   children: React.ReactNode;
 }) {
-  const path = usePathname(),
-    router = useRouter();
+  const path = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
-  const items = session.role === "ADMIN" ? admin : customer;
+  const isAdmin = session.role === "ADMIN";
+  const items = isAdmin ? admin : customer;
+  const initials = session.email.slice(0, 2).toUpperCase();
+  const title =
+    TITLES[path] ??
+    (path.startsWith("/simulations")
+      ? "Simulaciones"
+      : path.startsWith("/loans")
+        ? "Préstamos"
+        : "AutoCredit");
+
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     router.replace("/login");
     router.refresh();
   }
+
   return (
-    <div className="min-h-screen">
-      <header className="fixed inset-x-0 top-0 z-30 flex h-16 items-center border-b bg-white px-4 md:hidden">
-        <button onClick={() => setOpen(!open)}>
-          <Menu />
-        </button>
-        <b className="ml-3 text-blue-700">AutoCredit</b>
-      </header>
-      {open && (
-        <button
-          aria-label="Cerrar menú"
-          className="fixed inset-0 z-30 bg-black/30 md:hidden"
-          onClick={() => setOpen(false)}
-        />
-      )}
-      <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 border-r bg-white p-4 transition-transform md:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}
-      >
-        <div className="mb-8 flex items-center gap-2 px-2 text-lg font-bold text-blue-700">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-blue-700 text-white">
-            A
-          </span>
-          AutoCredit
-        </div>
-        <p className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
-          {session.role === "ADMIN" ? "Administración" : "Mi financiamiento"}
-        </p>
-        <nav className="mt-3 grid gap-1">
-          {items.map(([href, label, Icon]) => (
-            <Link
-              onClick={() => setOpen(false)}
-              key={href}
-              href={href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium ${path === href ? "bg-blue-50 text-blue-700" : "text-slate-600 hover:bg-slate-50"}`}
-            >
-              <Icon size={18} />
-              {label}
-            </Link>
-          ))}
-        </nav>
-        <div className="absolute bottom-4 inset-x-4 border-t pt-4">
-          <div className="mb-3 truncate px-2 text-xs text-slate-500">
-            {session.email}
+    <div className="app-shell" data-open={open}>
+      <button
+        aria-label="Cerrar menú"
+        className="sidebar-overlay"
+        onClick={() => setOpen(false)}
+      />
+
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-logo">
+            <CarLogo />
           </div>
-          <button
-            onClick={logout}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-red-50 hover:text-red-700"
+          <div>
+            <div className="brand-name">AutoCredit</div>
+            <div className="brand-sub">Compra Inteligente</div>
+          </div>
+        </div>
+
+        <div className="nav-section-label">
+          {isAdmin ? "Administración" : "Operaciones"}
+        </div>
+        {items.map(([href, label, Icon]) => (
+          <Link
+            key={href}
+            href={href}
+            onClick={() => setOpen(false)}
+            className={`nav-item ${path === href ? "active" : ""}`}
           >
-            <LogOut size={18} />
-            Cerrar sesión
-          </button>
+            <Icon /> <span>{label}</span>
+          </Link>
+        ))}
+
+        <div className="sidebar-footer">
+          <div className="user-card">
+            <div className="avatar">{initials}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                className="user-name"
+                style={{ overflow: "hidden", textOverflow: "ellipsis" }}
+              >
+                {session.email.split("@")[0]}
+              </div>
+              <div className="user-role">
+                {isAdmin ? "Administrador" : "Cliente"}
+              </div>
+            </div>
+            <button
+              className="icon-btn"
+              style={{ width: 30, height: 30 }}
+              onClick={logout}
+              title="Cerrar sesión"
+              aria-label="Cerrar sesión"
+            >
+              <LogOut style={{ width: 14, height: 14 }} />
+            </button>
+          </div>
         </div>
       </aside>
-      <main className="min-h-screen pt-20 md:ml-64 md:pt-0">
-        <div className="mx-auto max-w-7xl p-5 md:p-8">{children}</div>
-      </main>
+
+      <div className="main-area">
+        <header className="topbar">
+          <div className="topbar-left">
+            <button
+              className="icon-btn menu-btn"
+              onClick={() => setOpen(true)}
+              aria-label="Abrir menú"
+            >
+              <Menu style={{ width: 18, height: 18 }} />
+            </button>
+            <div className="page-title-bar">{title}</div>
+          </div>
+          <div className="topbar-right">
+            <span className="help-tip">
+              <button
+                className="icon-btn"
+                title="Ayuda"
+                aria-label="Centro de ayuda"
+              >
+                <HelpCircle style={{ width: 18, height: 18 }} />
+              </button>
+              <span
+                className="help-bubble below align-end"
+                style={{ width: 250 }}
+                role="tooltip"
+              >
+                <strong>Centro de ayuda.</strong> Pasa el cursor sobre los
+                iconos (?) junto a cada campo para ver una explicación de qué
+                significa y cómo usarlo.
+              </span>
+            </span>
+          </div>
+        </header>
+
+        <main className="content">{children}</main>
+      </div>
     </div>
   );
 }

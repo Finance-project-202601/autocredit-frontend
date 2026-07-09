@@ -7,10 +7,20 @@ export default function ErrorPage({
   reset: () => void;
 }) {
   return (
-    <div className="card mx-auto mt-20 max-w-lg p-8 text-center">
-      <h2 className="text-xl font-bold">No pudimos cargar esta pantalla</h2>
-      <p className="mt-2 text-slate-500">{error.message}</p>
-      <button onClick={reset} className="btn btn-primary mt-5">
+    <div
+      className="card card-pad"
+      style={{
+        maxWidth: 480,
+        margin: "80px auto",
+        textAlign: "center",
+        padding: 32,
+      }}
+    >
+      <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
+        No pudimos cargar esta pantalla
+      </h2>
+      <p className="muted mt-8">{error.message}</p>
+      <button onClick={reset} className="btn btn-primary mt-20">
         Intentar nuevamente
       </button>
     </div>

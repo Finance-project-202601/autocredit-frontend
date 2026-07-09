@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Check } from "lucide-react";
+
 export function ApproveButton({
   id,
   disabled,
@@ -8,8 +10,8 @@ export function ApproveButton({
   id: string;
   disabled: boolean;
 }) {
-  const [pending, setPending] = useState(false),
-    router = useRouter();
+  const [pending, setPending] = useState(false);
+  const router = useRouter();
   async function approve() {
     if (!confirm("¿Aprobar esta simulación y congelar sus condiciones?"))
       return;
@@ -26,8 +28,9 @@ export function ApproveButton({
     <button
       disabled={disabled || pending}
       onClick={approve}
-      className="btn btn-primary !py-2 text-xs"
+      className="btn btn-primary btn-sm"
     >
+      {!disabled && !pending && <Check />}
       {disabled ? "Aprobada" : pending ? "Aprobando…" : "Aprobar"}
     </button>
   );

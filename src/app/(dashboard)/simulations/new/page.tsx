@@ -1,6 +1,7 @@
 import { backendFetch } from "@/src/shared/infrastructure/backend";
 import type { Product, Vehicle } from "@/src/shared/domain/types";
 import { SimulatorForm } from "@/src/modules/financing/presentation/SimulatorForm";
+
 export default async function NewSimulation({
   searchParams,
 }: {
@@ -13,9 +14,17 @@ export default async function NewSimulation({
   ]);
   return (
     <>
-      <div className="page-title">
-        <h1>Simulador de crédito vehicular</h1>
-        <p>Configura tu Compra Inteligente y conoce su costo real.</p>
+      <div className="section-header">
+        <div>
+          <h1>Simulador de crédito vehicular</h1>
+          <div className="sub">
+            Configura tu Compra Inteligente y conoce su costo real.
+          </div>
+        </div>
+        <span className="badge action">
+          <span className="dot" />
+          Compra Inteligente
+        </span>
       </div>
       <SimulatorForm
         vehicles={vehicles}

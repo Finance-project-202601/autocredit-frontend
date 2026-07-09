@@ -1,5 +1,6 @@
 import { backendFetch } from "@/src/shared/infrastructure/backend";
 import { ProfileForm } from "@/src/modules/customers/presentation/ProfileForm";
+
 export default async function Profile() {
   let initial;
   try {
@@ -7,9 +8,13 @@ export default async function Profile() {
   } catch {}
   return (
     <>
-      <div className="page-title">
-        <h1>Mi perfil</h1>
-        <p>Completa tus datos para crear simulaciones de crédito.</p>
+      <div className="section-header">
+        <div>
+          <h1>Mi perfil</h1>
+          <div className="sub">
+            Completa tus datos para poder crear simulaciones de crédito.
+          </div>
+        </div>
       </div>
       <ProfileForm initial={initial} />
     </>

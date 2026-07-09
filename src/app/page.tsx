@@ -1,11 +1,21 @@
 import Link from "next/link";
-import { CarFront, ChartNoAxesCombined, ShieldCheck } from "lucide-react";
+import { CarFront, ChartNoAxesCombined, ShieldCheck, Clock } from "lucide-react";
+
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+    <main style={{ minHeight: "100vh", background: "var(--white)" }}>
+      <header
+        style={{
+          maxWidth: 1120,
+          margin: "0 auto",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "20px 24px",
+        }}
+      >
         <Logo />
-        <div className="flex gap-3">
+        <div className="flex-gap-8">
           <Link className="btn btn-secondary" href="/login">
             Ingresar
           </Link>
@@ -14,55 +24,124 @@ export default function Home() {
           </Link>
         </div>
       </header>
-      <section className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-20 md:grid-cols-2">
+
+      <section
+        style={{
+          maxWidth: 1120,
+          margin: "0 auto",
+          display: "grid",
+          gap: 48,
+          alignItems: "center",
+          padding: "72px 24px",
+        }}
+        className="landing-hero"
+      >
         <div>
-          <span className="badge">Compra Inteligente en soles</span>
-          <h1 className="mt-5 text-5xl font-bold leading-tight">
+          <span className="badge">
+            <span className="dot" />
+            Compra Inteligente en soles
+          </span>
+          <h1
+            style={{
+              marginTop: 20,
+              fontSize: 44,
+              fontWeight: 750,
+              lineHeight: 1.1,
+              letterSpacing: "-0.02em",
+              color: "var(--text-primary)",
+            }}
+          >
             Tu próximo auto, con números que sí puedes entender.
           </h1>
-          <p className="mt-5 text-lg leading-8 text-slate-600">
+          <p
+            className="muted"
+            style={{ marginTop: 20, fontSize: 17, lineHeight: 1.6 }}
+          >
             Simula cuotas con balón, seguros y periodos de gracia. Conoce la
-            TCEA real antes de decidir.
+            TCEA real, el VAN y la TIR antes de decidir.
           </p>
-          <div className="mt-8 flex gap-3">
-            <Link href="/register" className="btn btn-primary">
+          <div className="flex-gap-8" style={{ marginTop: 28 }}>
+            <Link href="/register" className="btn btn-primary btn-lg">
               Simular mi crédito
             </Link>
-            <Link href="/login" className="btn btn-secondary">
+            <Link href="/login" className="btn btn-secondary btn-lg">
               Ya tengo cuenta
             </Link>
           </div>
         </div>
-        <div className="rounded-3xl bg-gradient-to-br from-blue-700 to-blue-950 p-8 text-white shadow-2xl">
+
+        <div
+          style={{
+            borderRadius: 24,
+            background: "linear-gradient(135deg, #1a3a6b 0%, #2a5bc4 100%)",
+            padding: 32,
+            color: "white",
+            boxShadow: "var(--shadow-lg)",
+          }}
+        >
           <CarFront size={52} />
-          <h2 className="mt-8 text-3xl font-bold">Compra Inteligente</h2>
-          <p className="mt-3 text-blue-100">
-            Cuotas mensuales reducidas y una cuota balón transparente al final.
+          <h2 style={{ marginTop: 32, fontSize: 28, fontWeight: 700 }}>
+            Compra Inteligente
+          </h2>
+          <p style={{ marginTop: 12, color: "rgba(255,255,255,0.82)" }}>
+            Cuotas mensuales reducidas y una cuota balón transparente al final
+            del plazo.
           </p>
-          <div className="mt-8 grid grid-cols-2 gap-3">
-            <Feature icon={<ChartNoAxesCombined />} title="TCEA y VAN" />
+          <div
+            style={{
+              marginTop: 28,
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 12,
+            }}
+          >
+            <Feature icon={<ChartNoAxesCombined />} title="TCEA, VAN y TIR" />
             <Feature icon={<ShieldCheck />} title="Costos completos" />
+            <Feature icon={<Clock />} title="Periodos de gracia" />
+            <Feature icon={<CarFront />} title="Catálogo vehicular" />
           </div>
         </div>
       </section>
     </main>
   );
 }
+
 function Logo() {
   return (
-    <div className="flex items-center gap-2 font-bold text-blue-700">
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-blue-700 text-white">
-        A
-      </span>
-      AutoCredit
+    <div className="brand" style={{ padding: 0 }}>
+      <div className="brand-logo">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="white"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M5 13l1.5-4a2 2 0 0 1 2-1.5h7a2 2 0 0 1 2 1.5L19 13" />
+          <path d="M3 13h18v5a1 1 0 0 1-1 1h-2v-2H6v2H4a1 1 0 0 1-1-1z" />
+        </svg>
+      </div>
+      <div className="brand-name" style={{ fontSize: 18 }}>
+        AutoCredit
+      </div>
     </div>
   );
 }
+
 function Feature({ icon, title }: { icon: React.ReactNode; title: string }) {
   return (
-    <div className="rounded-xl bg-white/10 p-4">
+    <div
+      style={{
+        borderRadius: 12,
+        background: "rgba(255,255,255,0.1)",
+        padding: 16,
+      }}
+    >
       {icon}
-      <div className="mt-2 font-semibold">{title}</div>
+      <div style={{ marginTop: 8, fontWeight: 600, fontSize: 13.5 }}>
+        {title}
+      </div>
     </div>
   );
 }
