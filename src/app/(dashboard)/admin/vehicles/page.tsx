@@ -1,7 +1,7 @@
 import { requireSession } from "@/src/shared/application/session";
 import { backendFetch } from "@/src/shared/infrastructure/backend";
 import type { Vehicle } from "@/src/shared/domain/types";
-import { money } from "@/src/shared/presentation/format";
+import { moneyByCurrency } from "@/src/shared/presentation/format";
 import { Badge, Empty } from "@/src/shared/presentation/ui";
 import { VehicleForm } from "@/src/modules/admin/presentation/VehicleForm";
 
@@ -47,7 +47,7 @@ export default async function AdminVehicles() {
                       {x.brand} {x.model}
                     </td>
                     <td>{x.modelYear}</td>
-                    <td className="num fw-600">{money.format(x.price)}</td>
+                    <td className="num fw-600">{moneyByCurrency(x.price, x.currency)}</td>
                     <td>
                       <Badge tone={x.active ? "success" : "muted"}>
                         {x.active ? "Activo" : "Inactivo"}

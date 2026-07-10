@@ -1,17 +1,19 @@
 import Link from "next/link";
 import { requireSession } from "@/src/shared/application/session";
 import { backendFetch } from "@/src/shared/infrastructure/backend";
-import type { Simulation, Vehicle, Product } from "@/src/shared/domain/types";
+import type { ExchangeRate, Simulation, Vehicle, Product } from "@/src/shared/domain/types";
 import { Stat } from "@/src/shared/presentation/ui";
 import { ClipboardCheck, Users, CarFront, Package } from "lucide-react";
+import { ExchangeRateForm } from "@/src/modules/admin/presentation/ExchangeRateForm";
 
 export default async function Admin() {
   await requireSession("ADMIN");
-  const [sims, vehicles, products, users] = await Promise.all([
+  const [sims, vehicles, products, users, exchangeRate] = await Promise.all([
     backendFetch<Simulation[]>("/api/simulations"),
     backendFetch<Vehicle[]>("/api/admin/vehicles"),
     backendFetch<Product[]>("/api/admin/products"),
     backendFetch<unknown[]>("/api/admin/users"),
+    backendFetch<ExchangeRate>("/api/exchange-rates/usd"),
   ]);
   return (
     <>
@@ -57,19 +59,22 @@ export default async function Admin() {
         />
       </div>
 
-      <div className="card card-pad">
-        <div className="card-title mb-16">Acciones prioritarias</div>
-        <div className="flex-gap-8 flex-wrap">
-          <Link className="btn btn-primary" href="/admin/simulations">
-            Revisar aprobaciones
-          </Link>
-          <Link className="btn btn-secondary" href="/admin/vehicles">
-            Gestionar vehículos
-          </Link>
-          <Link className="btn btn-secondary" href="/admin/products">
-            Gestionar productos
-          </Link>
+      <div className="grid gap-16 lg:grid-cols-[1fr_1fr]">
+        <div className="card card-pad">
+          <div className="card-title mb-16">Acciones prioritarias</div>
+          <div className="flex-gap-8 flex-wrap">
+            <Link className="btn btn-primary" href="/admin/simulations">
+              Revisar aprobaciones
+            </Link>
+            <Link className="btn btn-secondary" href="/admin/vehicles">
+              Gestionar vehículos
+            </Link>
+            <Link className="btn btn-secondary" href="/admin/products">
+              Gestionar productos
+            </Link>
+          </div>
         </div>
+        <ExchangeRateForm rate={exchangeRate} />
       </div>
     </>
   );

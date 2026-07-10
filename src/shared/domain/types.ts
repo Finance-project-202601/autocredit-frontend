@@ -15,7 +15,13 @@ export interface Vehicle {
   sku: string;
   mileage: number;
   active: boolean;
-  currency: "PEN";
+  currency: Currency;
+}
+export type Currency = "PEN" | "USD";
+export interface ExchangeRate {
+  code: "USD";
+  rateToPen: number;
+  updatedAt: string;
 }
 export interface Product {
   id: string;
@@ -49,6 +55,10 @@ export interface Simulation {
   status: string;
   vehicleId: string;
   productId: string;
+  currency: Currency;
+  vehiclePriceOriginal: number;
+  exchangeRate: number;
+  vehiclePricePen: number;
   financedAmount: number;
   monthlyRate: number;
   basePayment: number;

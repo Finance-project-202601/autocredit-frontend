@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireSession } from "@/src/shared/application/session";
 import { backendFetch } from "@/src/shared/infrastructure/backend";
 import type { Simulation } from "@/src/shared/domain/types";
@@ -35,6 +36,7 @@ export default async function Approvals() {
               <thead>
                 <tr>
                   <th>Fecha</th>
+                  <th>Moneda</th>
                   <th className="num">Financiado</th>
                   <th className="num">Cuota</th>
                   <th className="num">Balón</th>
@@ -47,6 +49,7 @@ export default async function Approvals() {
                 {rows.map((x) => (
                   <tr key={x.id}>
                     <td className="muted">{date(x.createdAt)}</td>
+                    <td>{x.currency === "USD" ? `USD · TC ${x.exchangeRate.toFixed(4)}` : "PEN"}</td>
                     <td className="num fw-600">{money.format(x.financedAmount)}</td>
                     <td className="num">{money.format(x.basePayment)}</td>
                     <td className="num">{money.format(x.balloonAmount)}</td>
@@ -55,7 +58,12 @@ export default async function Approvals() {
                       <StatusBadge status={x.status} />
                     </td>
                     <td className="num">
-                      <ApproveButton id={x.id} disabled={x.status !== "DRAFT"} />
+                      <div className="flex-gap-8" style={{ justifyContent: "flex-end" }}>
+                        <Link className="btn btn-secondary btn-sm" href={`/admin/simulations/${x.id}`}>
+                          Ver detalle
+                        </Link>
+                        <ApproveButton id={x.id} disabled={x.status !== "DRAFT"} />
+                      </div>
                     </td>
                   </tr>
                 ))}

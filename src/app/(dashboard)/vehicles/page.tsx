@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { backendFetch } from "@/src/shared/infrastructure/backend";
 import type { Vehicle } from "@/src/shared/domain/types";
-import { money } from "@/src/shared/presentation/format";
+import { moneyByCurrency } from "@/src/shared/presentation/format";
 import { Badge } from "@/src/shared/presentation/ui";
 import { CarFront } from "lucide-react";
 
@@ -59,7 +59,7 @@ export default async function Vehicles() {
                   color: "var(--text-primary)",
                 }}
               >
-                {money.format(v.price)}
+                {moneyByCurrency(v.price, v.currency)}
               </strong>
               <Link
                 href={`/simulations/new?vehicle=${v.id}`}

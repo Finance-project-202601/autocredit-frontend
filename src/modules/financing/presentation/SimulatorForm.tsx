@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Product, Vehicle } from "@/src/shared/domain/types";
-import { money, percent } from "@/src/shared/presentation/format";
+import { money, moneyByCurrency, percent } from "@/src/shared/presentation/format";
 import { HelpTip } from "@/src/shared/presentation/HelpTip";
 import { buildSchedule } from "@/src/shared/application/finance";
 import { ChevronRight } from "lucide-react";
@@ -18,10 +18,12 @@ const CAP_OPTIONS: [string, string][] = [
 export function SimulatorForm({
   vehicles,
   products,
+  exchangeRate,
   selected,
 }: {
   vehicles: Vehicle[];
   products: Product[];
+  exchangeRate: number;
   selected?: string;
 }) {
   const router = useRouter();
@@ -52,7 +54,9 @@ export function SimulatorForm({
   const [commission, setCommission] = useState("0");
   const [discountRate, setDiscountRate] = useState("14.8");
 
-  const price = vehicle?.price ?? 0;
+  const priceOriginal = vehicle?.price ?? 0;
+  const currency = vehicle?.currency ?? "PEN";
+  const price = currency === "USD" ? priceOriginal * exchangeRate : priceOriginal;
   const downPct = (Number(downPayment) || 0) / 100;
   const initialAmount = price * downPct;
 
@@ -143,7 +147,7 @@ export function SimulatorForm({
               onChange={setVehicleId}
               options={vehicles.map((v) => [
                 v.id,
-                `${v.brand} ${v.model} — ${money.format(v.price)}`,
+                `${v.brand} ${v.model} — ${moneyByCurrency(v.price, v.currency)}`,
               ])}
             />
             <Select
@@ -170,10 +174,10 @@ export function SimulatorForm({
             <div className="field">
               <label>Precio del vehículo</label>
               <div className="input-wrap">
-                <span className="input-prefix">S/</span>
+                <span className="input-prefix">{currency === "USD" ? "US$" : "S/"}</span>
                 <input
                   className="input with-prefix"
-                  value={price ? price.toFixed(2) : "0.00"}
+                  value={priceOriginal ? priceOriginal.toFixed(2) : "0.00"}
                   readOnly
                 />
               </div>
@@ -201,8 +205,9 @@ export function SimulatorForm({
                 Monto a financiar
               </div>
               <div className="tiny muted">
-                {(100 - (Number(downPayment) || 0)).toFixed(0)}% del valor
+                {(100 - (Number(downPayment) || 0)).toFixed(0)}% del valor en PEN
                 {Number(financedExpenses) > 0 ? " + gastos" : ""}
+                {currency === "USD" ? ` · TC ${exchangeRate.toFixed(4)}` : ""}
               </div>
             </div>
             <div className="tnum navy-text" style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em" }}>
@@ -481,6 +486,12 @@ export function SimulatorForm({
         <div className="card card-pad">
           <div className="card-title mb-12">Resumen de condiciones</div>
           <KV k="Precio del vehículo" v={money.format(price)} />
+          {currency === "USD" && (
+            <>
+              <KV k="Precio original" v={moneyByCurrency(priceOriginal, "USD")} />
+              <KV k="TC usado para vista previa" v={`S/ ${exchangeRate.toFixed(4)}`} />
+            </>
+          )}
           <KV k={`Cuota inicial (${Number(downPayment) || 0}%)`} v={money.format(initialAmount)} />
           <KV k="Monto a financiar" v={<span className="action-text">{money.format(financed)}</span>} />
           <KV k="Plazo" v={`${term} meses`} />

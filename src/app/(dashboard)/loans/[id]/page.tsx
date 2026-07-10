@@ -1,7 +1,7 @@
 import { backendFetch } from "@/src/shared/infrastructure/backend";
 import type { Installment, Simulation } from "@/src/shared/domain/types";
-import { money, percent } from "@/src/shared/presentation/format";
-import { Indicator } from "@/src/shared/presentation/ui";
+import { money, moneyByCurrency, percent } from "@/src/shared/presentation/format";
+import { Indicator, KV } from "@/src/shared/presentation/ui";
 import { Download } from "lucide-react";
 
 export default async function LoanDetail({
@@ -29,6 +29,16 @@ export default async function LoanDetail({
         <Indicator label="Balón final" sub="pago final" value={money.format(x.balloonAmount)} tone="warning" />
         <Indicator label="TCEA" sub="costo efectivo" value={percent(x.tcea)} tone="action" />
         <Indicator label="Total pagado" sub="durante el plazo" value={money.format(x.totalPaid)} tone="navy" />
+      </div>
+
+      <div className="card card-pad mb-24">
+        <div className="card-title mb-12">Moneda y condiciones congeladas</div>
+        <div className="grid gap-12 md:grid-cols-2">
+          <KV k="Precio original" v={moneyByCurrency(x.vehiclePriceOriginal, x.currency)} />
+          <KV k="Tipo de cambio usado" v={`S/ ${x.exchangeRate.toFixed(4)}`} />
+          <KV k="Precio equivalente PEN" v={money.format(x.vehiclePricePen)} />
+          <KV k="Moneda de cálculo" v="PEN" />
+        </div>
       </div>
 
       <div className="card">

@@ -1,5 +1,5 @@
 import { backendFetch } from "@/src/shared/infrastructure/backend";
-import type { Product, Vehicle } from "@/src/shared/domain/types";
+import type { ExchangeRate, Product, Vehicle } from "@/src/shared/domain/types";
 import { SimulatorForm } from "@/src/modules/financing/presentation/SimulatorForm";
 
 export default async function NewSimulation({
@@ -7,9 +7,10 @@ export default async function NewSimulation({
 }: {
   searchParams: Promise<{ vehicle?: string }>;
 }) {
-  const [vehicles, products, query] = await Promise.all([
+  const [vehicles, products, exchangeRate, query] = await Promise.all([
     backendFetch<Vehicle[]>("/api/vehicles"),
     backendFetch<Product[]>("/api/products"),
+    backendFetch<ExchangeRate>("/api/exchange-rates/usd"),
     searchParams,
   ]);
   return (
@@ -29,6 +30,7 @@ export default async function NewSimulation({
       <SimulatorForm
         vehicles={vehicles}
         products={products}
+        exchangeRate={exchangeRate.rateToPen}
         selected={query.vehicle}
       />
     </>

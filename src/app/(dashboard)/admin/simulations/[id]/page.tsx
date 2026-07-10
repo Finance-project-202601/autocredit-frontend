@@ -1,22 +1,24 @@
+import Link from "next/link";
+import { requireSession } from "@/src/shared/application/session";
 import { backendFetch } from "@/src/shared/infrastructure/backend";
 import type { Installment, Simulation } from "@/src/shared/domain/types";
 import { money, moneyByCurrency, percent, date } from "@/src/shared/presentation/format";
 import { Indicator, StatusBadge, KV } from "@/src/shared/presentation/ui";
-import { HelpTip } from "@/src/shared/presentation/HelpTip";
+import { ApproveButton } from "@/src/modules/admin/presentation/ApproveButton";
 
 function rowClass(state: string) {
   const s = state?.toUpperCase();
   if (s?.includes("TOTAL")) return "row-grace-total";
   if (s?.includes("PARTIAL") || s?.includes("PARCIAL")) return "row-grace-partial";
-  if (s?.includes("BALLOON") || s?.includes("BALON")) return "row-upcoming";
   return "";
 }
 
-export default async function Detail({
+export default async function AdminSimulationDetail({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireSession("ADMIN");
   const { id } = await params;
   const x = await backendFetch<Simulation>(`/api/simulations/${id}`);
   const schedule: Installment[] = x.schedule ?? [];
@@ -24,96 +26,48 @@ export default async function Detail({
     <>
       <div className="section-header">
         <div>
-          <h1>Resultado de simulación</h1>
+          <h1>Detalle de simulación</h1>
           <div className="sub" style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {date(x.createdAt)} <StatusBadge status={x.status} />
           </div>
         </div>
+        <div className="flex-gap-8 flex-wrap">
+          <Link href="/admin/simulations" className="btn btn-secondary">
+            Volver
+          </Link>
+          <ApproveButton id={x.id} disabled={x.status !== "DRAFT"} />
+        </div>
       </div>
 
       <div className="six-col mb-24">
-        <Indicator
-          label="VAN"
-          sub="valor actual neto"
-          value={money.format(x.npv)}
-          tone={x.npv >= 0 ? "success" : "error"}
-          info={
-            <span>
-              <strong>Valor Actual Neto.</strong> Valor presente de los flujos
-              descontados a la tasa de descuento.
-            </span>
-          }
-        />
-        <Indicator
-          label="TIR (mensual)"
-          sub="tasa interna"
-          value={percent(x.monthlyIrr)}
-          tone="action"
-          info={
-            <span>
-              <strong>Tasa Interna de Retorno.</strong> Tasa mensual que iguala
-              el VAN a cero.
-            </span>
-          }
-        />
-        <Indicator
-          label="TCEA"
-          sub="costo efectivo"
-          value={percent(x.tcea)}
-          tone="navy"
-          info={
-            <span>
-              <strong>Tasa de Costo Efectivo Anual.</strong> Costo real del
-              crédito incluyendo seguros y portes.
-            </span>
-          }
-        />
-        <Indicator
-          label="Cuota base"
-          sub="mensual"
-          value={money.format(x.basePayment)}
-          tone="navy"
-        />
-        <Indicator
-          label="Cuota balón"
-          sub="pago final"
-          value={money.format(x.balloonAmount)}
-          tone="warning"
-        />
-        <Indicator
-          label="Financiado"
-          sub={`TEM ${percent(x.monthlyRate)}`}
-          value={money.format(x.financedAmount)}
-          tone="navy"
-        />
+        <Indicator label="Financiado" sub="monto en PEN" value={money.format(x.financedAmount)} tone="navy" />
+        <Indicator label="Cuota base" sub="mensual" value={money.format(x.basePayment)} tone="navy" />
+        <Indicator label="Cuota balón" sub="pago final" value={money.format(x.balloonAmount)} tone="warning" />
+        <Indicator label="TCEA" sub="costo efectivo" value={percent(x.tcea)} tone="action" />
+        <Indicator label="VAN" sub="valor actual neto" value={money.format(x.npv)} tone={x.npv >= 0 ? "success" : "error"} />
+        <Indicator label="TIR mensual" sub="flujo cliente" value={percent(x.monthlyIrr)} tone="navy" />
       </div>
 
       <div className="card card-pad mb-24">
-        <div className="card-title mb-12">Moneda y conversión</div>
+        <div className="card-title mb-12">Condiciones congeladas</div>
         <div className="grid gap-12 md:grid-cols-2">
           <KV k="Precio original" v={moneyByCurrency(x.vehiclePriceOriginal, x.currency)} />
-          <KV k="Tipo de cambio congelado" v={`S/ ${x.exchangeRate.toFixed(4)}`} />
+          <KV k="Moneda origen" v={x.currency} />
+          <KV k="Tipo de cambio usado" v={`S/ ${x.exchangeRate.toFixed(4)}`} />
           <KV k="Precio equivalente PEN" v={money.format(x.vehiclePricePen)} />
-          <KV k="Moneda de cálculo" v="PEN" />
+          <KV k="Total intereses" v={money.format(x.totalInterest)} />
+          <KV k="Total seguros" v={money.format(x.totalInsurance)} />
+          <KV k="Total pagado" v={money.format(x.totalPaid)} />
+          <KV k="TEM" v={percent(x.monthlyRate)} />
         </div>
       </div>
 
       <div className="card">
         <div className="card-header">
           <div>
-            <div className="card-title" style={{ display: "flex", alignItems: "center", gap: 7 }}>
-              Cronograma de pagos
-              <HelpTip below width={250}>
-                <span>
-                  <strong>Cronograma de pagos.</strong> Detalle cuota por cuota:
-                  cómo cada pago se reparte entre interés y amortización hasta
-                  saldar la deuda.
-                </span>
-              </HelpTip>
-            </div>
+            <div className="card-title">Cronograma de pagos</div>
             <div className="card-sub">
-              {schedule.length} cuotas · incluye intereses, seguros, portes y
-              cuota balón
+              {schedule.length} cuotas · cálculo oficial en soles
             </div>
           </div>
         </div>
@@ -141,9 +95,7 @@ export default async function Detail({
                   <td className="num">{money.format(i.openingBalance)}</td>
                   <td className="num">{money.format(i.interest)}</td>
                   <td className="num">{money.format(i.amortization)}</td>
-                  <td className="num">
-                    {money.format(i.lifeInsurance + i.vehicleInsurance)}
-                  </td>
+                  <td className="num">{money.format(i.lifeInsurance + i.vehicleInsurance)}</td>
                   <td className="num">{money.format(i.postage)}</td>
                   <td className="num">{money.format(i.balloon)}</td>
                   <td className="num fw-600" style={{ color: "var(--text-primary)" }}>

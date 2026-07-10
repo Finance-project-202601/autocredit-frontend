@@ -15,6 +15,7 @@ export function VehicleForm() {
       modelYear: Number(f.get("year")),
       condition: f.get("condition"),
       price: Number(f.get("price")),
+      currency: f.get("currency"),
       plate: null,
       sku: f.get("sku"),
       mileage: 0,
@@ -60,15 +61,22 @@ export function VehicleForm() {
               </div>
               <div className="form-row form-row-3">
                 <Input name="year" label="Año" type="number" />
-                <Input name="price" label="Precio (S/)" type="number" />
+                <Input name="price" label="Precio" type="number" />
                 <Input name="sku" label="SKU" />
               </div>
-              <div className="form-row-single">
+              <div className="form-row">
                 <div className="field">
                   <label>Condición</label>
                   <select name="condition" className="select">
                     <option value="NEW">Nuevo</option>
                     <option value="USED">Usado</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label>Moneda</label>
+                  <select name="currency" className="select" defaultValue="PEN">
+                    <option value="PEN">Soles (PEN)</option>
+                    <option value="USD">Dólares (USD)</option>
                   </select>
                 </div>
               </div>
